@@ -5,6 +5,8 @@ core/pages/*
 core/cache/*
 core/local.config.php
 core/logs/*
+core/modules/Create/*
+core/templates/create/*
 lib/signatures/*
 lib/avatars/*
 lib/rss/*

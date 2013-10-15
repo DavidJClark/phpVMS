@@ -112,7 +112,7 @@ class Maintenance extends CodonModule {
      * 
      * @return
      */
-    public static function resetpirepcount() {
+    public function resetpirepcount() {
         $this->checkPermission(MAINTENANCE);
         
         echo '<h3>Reset PIREP Counts</h3>';
