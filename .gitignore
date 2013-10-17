@@ -6,6 +6,8 @@ core/cache/*
 core/local.config.php
 core/logs/*
 core/modules/Plugins/uploads/*
+core/modules/Create/*
+core/templates/create/*
 lib/signatures/*
 lib/avatars/*
 lib/rss/*
