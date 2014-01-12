@@ -11,14 +11,14 @@
  *   Creative Commons Attribution Non-commercial Share Alike (by-nc-sa)
  *   View license.txt in the root, or visit http://creativecommons.org/licenses/by-nc-sa/3.0/
  *
- * @author Nabeel Shahzad 
+ * @author Nabeel Shahzad
  * @copyright Copyright (c) 2008, Nabeel Shahzad
  * @link http://www.phpvms.net
  * @license http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 
 class Auth extends CodonData {
-    
+
     public static $init = false;
     public static $loggedin = false;
     public static $error_message;
@@ -165,7 +165,7 @@ class Auth extends CodonData {
      */
     public static function clearExpiredSessions() {
         $time = Config::Get('SESSION_GUEST_EXPIRE');
-        $sql = "DELETE FROM " . TABLE_PREFIX . "sessions 
+        $sql = "DELETE FROM " . TABLE_PREFIX . "sessions
 				WHERE DATE_SUB(NOW(), INTERVAL {$time} MINUTE) > `logintime`
 					AND `pilotid` = 0";
 
@@ -231,7 +231,7 @@ class Auth extends CodonData {
             if (preg_match('/^.*\@.*$/i', $useridoremail) > 0) {
                 $emailaddress = DB::escape($useridoremail);
                 $sql = 'SELECT * FROM ' . TABLE_PREFIX . 'pilots
-						WHERE email=\'' . $useridoremail . '\'';
+						WHERE email=\'' . $emailaddress . '\'';
             }
             # They're loggin in with a pilot id
             elseif (preg_match('/^([A-Za-z]*)(.*)(\d*)/', $useridoremail, $matches) > 0) {
@@ -265,7 +265,7 @@ class Auth extends CodonData {
                 return false;
             }
         }
-        
+
         /*if($userinfo->retired == 1)
         {
         self::$error_message = 'Your account was deactivated, please contact an admin';
@@ -276,7 +276,7 @@ class Auth extends CodonData {
         $hash = md5($password . $userinfo->salt);
 
         if ($hash == $userinfo->password) {
-            
+
             self::$userinfo = $userinfo; #deprecated
             self::$pilot = self::$userinfo;
 
