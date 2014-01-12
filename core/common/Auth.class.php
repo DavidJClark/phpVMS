@@ -10,7 +10,7 @@
  *   Creative Commons Attribution Non-commercial Share Alike (by-nc-sa)
  *   View license.txt in the root, or visit http://creativecommons.org/licenses/by-nc-sa/3.0/
  *
- * @author Nabeel Shahzad 
+ * @author Nabeel Shahzad
  * @copyright Copyright (c) 2008, Nabeel Shahzad
  * @link http://www.phpvms.net
  * @license http://creativecommons.org/licenses/by-nc-sa/3.0/
@@ -21,12 +21,12 @@ class Auth extends CodonData
 	public static $init=false;
 	public static $loggedin=false;
 	public static $error_message;
-	
+
 	public static $pilotid;
 	public static $userinfo;
 	public static $session_id;
 	public static $usergroups;
-	
+
 	/**
 	 * Start the "auth engine", see if anyone is logged in and grab their info
 	 *
@@ -34,12 +34,12 @@ class Auth extends CodonData
 	 *
 	 */
 	public static function StartAuth()
-	{	
+	{
 		self::$init = true;
 		self::$session_id = SessionManager::Get('session_id');
-		
+
 		$assign_id = false;
-	
+
 		if(self::$session_id == '')
 		{
 			if($_COOKIE[VMS_AUTH_COOKIE] != '')
@@ -51,12 +51,12 @@ class Auth extends CodonData
 
 				// TODO: Determine data reliability from IP addresses marked
 				$session_info = self::get_session($session_id, $pilot_id, $ip_address);
-				
+
 				if($session_info)
 				{
 					/* Populate session info */
 					$userinfo = PilotData::GetPilotData($pilot_id);
-					
+
 					if(!$userinfo)
 					{
 						self::$loggedin = false;
@@ -68,23 +68,23 @@ class Auth extends CodonData
 					self::$pilotid = self::$userinfo->pilotid;
 					self::$usergroups = SessionManager::Get('usergroups');
 					self::$session_id = $session_id;
-					
+
 					if(self::$usergroups == '')
 					{
 						self::$usergroups = PilotGroups::GetUserGroups($userinfo->pilotid);
 					}
-					
+
 					SessionManager::Set('loggedin', true);
 					SessionManager::Set('userinfo', $userinfo);
 					SessionManager::Set('usergroups', self::$usergroups);
 					PilotData::UpdateLogin($userinfo->pilotid);
-					
+
 					self::update_session(self::$session_id, self::$userinfo->pilotid);
-					
+
 					return true;
 				}
 			}
-			
+
 			// Look for an existing session based on ID
 			// No session ID was found anywhere so assign one
 			$assign_id = true;
@@ -98,14 +98,14 @@ class Auth extends CodonData
 			{
 				self::$loggedin = true;
 				self::$userinfo = SessionManager::Get('userinfo');
-				
+
 				self::$usergroups = PilotGroups::GetUserGroups(self::$userinfo->pilotid);
 				self::$pilotid = self::$userinfo->pilotid;
-				
+
 				# Bugfix, in case user updates their profile info, grab the latest
 				self::$userinfo = PilotData::GetPilotData(self::$pilotid);
 				self::update_session(self::$session_id, self::$userinfo->pilotid);
-				
+
 				return true;
 			}
 			else
@@ -116,16 +116,16 @@ class Auth extends CodonData
 				$assign_id = false;
 			}
 		}
-		
+
 		// Empty session so start one up, and they're not logged in
 		if($assign_id == true)
 		{
-			
+
 		}
-		
+
 		return true;
 	}
-	
+
 	public static function start_session($pilot_id)
 	{
 		$sql = "INSERT INTO ".TABLE_PREFIX."sessions
@@ -137,18 +137,18 @@ class Auth extends CodonData
 
 		return $session_id;
 	}
-	
-	
+
+
 	public static function update_session($session_id, $pilot_id)
-	{	
+	{
 		$sql = 'UPDATE '.TABLE_PREFIX."sessions
 				    SET `pilotid`={$pilot_id}, `logintime`=NOW(), `ipaddress`='{$_SERVER['REMOTE_ADDR']}'
 				    WHERE `id`={$session_id}";
-			
+
 		DB::query($sql);
 		$session_id = $session_data->id;
 	}
-	
+
 	public static function get_session($session_id, $pilot_id, $ip_address)
 	{
 		$sql = 'SELECT * FROM '.TABLE_PREFIX."sessions
@@ -163,11 +163,11 @@ class Auth extends CodonData
 	{
 		$sql = "DELETE FROM ".TABLE_PREFIX."sessions
 				WHERE pilotid={$pilot_id}";
-			
+
 		DB::query($sql);
 	}
-	
-	
+
+
 	/**
 	 *  Clear any guest sessions which have expired
 	 *
@@ -177,13 +177,13 @@ class Auth extends CodonData
 	public static function clearExpiredSessions()
 	{
 		$time =	Config::Get('SESSION_GUEST_EXPIRE');
-		$sql = "DELETE FROM ".TABLE_PREFIX."sessions 
+		$sql = "DELETE FROM ".TABLE_PREFIX."sessions
 				WHERE DATE_SUB(NOW(), INTERVAL {$time} MINUTE) > `logintime`
 					AND `pilotid` = 0";
-		
+
 		DB::query($sql);
 	}
-	
+
 	/**
 	 * Return the pilot ID of the currently logged in user
 	 *
@@ -194,7 +194,7 @@ class Auth extends CodonData
 	{
 		return self::$userinfo->pilotid;
 	}
-	
+
 	/**
 	 * Get their firstname/last name
 	 */
@@ -202,7 +202,7 @@ class Auth extends CodonData
 	{
 		return self::$userinfo->firstname . ' ' . self::$userinfo->lastname;
 	}
-	
+
 	/**
 	 * Return true/false if they're logged in or not
 	 */
@@ -212,27 +212,27 @@ class Auth extends CodonData
 		{
 			return self::StartAuth();
 		}
-		
+
 		return self::$loggedin;
 	}
-	
+
 	/**
 	 * See if a use is in a given group
 	 */
 	public static function UserInGroup($groupname)
 	{
 		if(!self::LoggedIn()) return false;
-		
+
 		if(!self::$usergroups) self::$usergroups = array();
 		foreach(self::$usergroups as $group)
 		{
 			if($group->name == $groupname)
 				return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Log the user in
 	 */
@@ -255,14 +255,14 @@ class Auth extends CodonData
 			{
 				$emailaddress = DB::escape($useridoremail);
 				$sql = 'SELECT * FROM ' . TABLE_PREFIX . 'pilots
-						WHERE email=\''.$useridoremail.'\'';
-			} 
+						WHERE email=\''.$emailaddress.'\'';
+			}
 			# They're loggin in with a pilot id
 			elseif(preg_match('/^([A-Za-z]*)(.*)(\d*)/', $useridoremail, $matches)>0)
 			{
 				$id = trim($matches[2]);
 				$id = $id - intval(Config::Get('PILOTID_OFFSET'));
-				
+
 				$sql = 'SELECT * FROM '.TABLE_PREFIX.'pilots
 						WHERE pilotid='.$id;
 			}
@@ -273,7 +273,7 @@ class Auth extends CodonData
 				return false;
 			}
 		}
-		
+
 		$password = DB::escape($password);
 		$userinfo = DB::get_row($sql);
 
@@ -282,7 +282,7 @@ class Auth extends CodonData
 			self::$error_message = 'This user does not exist';
 			return false;
 		}
-		
+
 		/*if($userinfo->retired == 1)
 		{
 			self::$error_message = 'Your account was deactivated, please contact an admin';
@@ -291,44 +291,44 @@ class Auth extends CodonData
 
 		//ok now check it
 		$hash = md5($password . $userinfo->salt);
-		
+
 		if($hash == $userinfo->password)
-		{	
+		{
 			self::$userinfo =  $userinfo;
-			
+
 			self::update_session(self::$session_id, self::$userinfo->pilotid);
 
-			SessionManager::Set('loggedin', 'true');	
+			SessionManager::Set('loggedin', 'true');
 			SessionManager::Set('userinfo', $userinfo);
 			SessionManager::Set('usergroups', PilotGroups::GetUserGroups($userinfo->pilotid));
-			
+
 			PilotData::updateProfile($pilotid, array(
-					'lastlogin'=>'NOW()', 
+					'lastlogin'=>'NOW()',
 					'lastip' => $_SERVER['REMOTE_ADDR'],
 				)
 			);
-			
+
 			return true;
-		}			
-		else 
+		}
+		else
 		{
 			self::$error_message = 'Invalid login, please check your username and password';
 			self::LogOut();
-			
+
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Log them out
-	 */	
+	 */
 	public static function LogOut()
 	{
 		#self::remove_sessions(SessionManager::GetValue('userinfo', 'pilotid'));
-		
+
 		# Mark them as guest
 		self::update_session(self::$session_id, 0);
-		
+
 		# "Ghost" entry
 		//self::start_session(self::$userinfo->pilotid); // Orphaned?
 
@@ -339,7 +339,7 @@ class Auth extends CodonData
 		# Delete cookie
 		$_COOKIE[VMS_AUTH_COOKIE] = '';
 		setcookie(VMS_AUTH_COOKIE, false);
-		
+
 		self::$loggedin = false;
 	}
 }
